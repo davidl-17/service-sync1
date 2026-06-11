@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ServiceSync">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/000000/FFFFFF?text=Sync">
+    <title>Service Organizer</title>
+    <style>
+        /* Apple-inspired Light/Dark mode colors */
+        :root {
+            --bg: #f2f2f7;
+            --card: #ffffff;
+            --text: #1c1c1e;
+            --text-sec: #8e8e93;
+            --border: #e5e5ea;
+            --blue: #007aff;
+            --red: #ff3b30;
+            --seg-bg: #e3e3e8;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000;
+                --card: #1c1c1e;
+                --text: #f2f2f7;
+                --text-sec: #8e8e93;
+                --border: #38383a;
+                --seg-bg: #2c2c2e;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            /* Accounts for iPhone 15 Pro Dynamic Island */
+            padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom) 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header {
+            padding: 16px 0 16px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* Segmented Control (Tabs) */
+        .segmented-control {
+            display: flex;
+            background: var(--seg-bg);
+            padding: 3px;
+            border-radius: 9px;
+            margin-bottom: 24px;
+        }
+        .segment {
+            flex: 1;
+            text-align: center;
+            padding: 7px 0;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 7px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .segment.active {
+            background: var(--card);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.12), 0 3px 1px rgba(0,0,0,0.04);
+        }
+
+        /* Views */
+        .view { display: none; }
+        .view.active-view { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+        }
+        .card-title {
+            font-size: 19px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            letter-spacing: -0.3px;
+        }
+        .field-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-sec);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .select-wrapper { margin-bottom: 20px; }
+        .select-wrapper:last-child { margin-bottom: 0; }
+
+        select, .ios-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 16px; /* 16px strictly prevents Safari from auto-zooming */
+            font-weight: 500;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: border-color 0.2s ease;
+        }
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 16px;
+            border-left-width: 6px;
+        }
+
+        .ios-input::placeholder { color: var(--text-sec); opacity: 0.8; }
+        
+        .input-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            border: none;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+        }
+        .add-btn { background: var(--blue); margin-top: 16px; }
+        .add-btn:active { opacity: 0.8; }
+        .reset-btn { background: var(--red); margin-top: 24px; margin-bottom: 40px; }
+
+        /* Setlist Items */
+        .song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+        }
+        .song-info { flex: 1; }
+        .song-name { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+        .song-meta { font-size: 13px; color: var(--text-sec); display: flex; gap: 8px; }
+        .song-meta span { 
+            background: var(--bg); 
+            padding: 4px 8px; 
+            border-radius: 6px; 
+            font-weight: 600; 
+        }
+        .delete-btn {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--red);
+            border: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 17px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-left: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ServiceSync</h1>
+    </div>
+
+    <!-- iOS Style Segmented Control -->
+    <div class="segmented-control">
+        <div class="segment active" id="tab-team" onclick="switchTab('team')">Team Setup</div>
+        <div class="segment" id="tab-setlist" onclick="switchTab('setlist')">Set List</div>
+    </div>
+
+    <!-- Team View -->
+    <div id="view-team" class="view active-view">
+        <div id="team-container"></div>
+        <button class="btn reset-btn" onclick="resetTeam()">Reset Assignments</button>
+    </div>
+
+    <!-- Setlist View -->
+    <div id="view-setlist" class="view">
+        <div class="card">
+            <div class="card-title">Add New Song</div>
+            <input type="text" id="song-name" placeholder="Song Title" class="ios-input">
+            <div class="input-row">
+                <input type="text" id="song-key" placeholder="Key (e.g. C#)" class="ios-input">
+                <input type="number" id="song-bpm" placeholder="BPM" class="ios-input" inputmode="numeric">
+            </div>
+            <button class="btn add-btn" onclick="addSong()">Add to Set</button>
+        </div>
+        
+        <div class="field-label" style="margin: 24px 0 12px 4px;">Current Set</div>
+        <div id="setlist-container"></div>
+    </div>
+
+    <script>
+        // Core Data
+        const singers = ['Ally', 'Sophia', 'Cici', 'Jake', 'Yara', 'Raquel'];
+        const packs = ['Unassigned', 'Pack 1', 'Pack 2', 'Pack 3', 'Pack 4'];
+        const mics = ['Unassigned', 'Blue', 'Purple', 'Orange', 'White', 'Red', 'Yellow'];
+        
+        // Exact physical mic colors. We use an off-white/gray for "White" so it remains visible against the white card
+        const micColors = {
+            'Blue': '#0a84ff', 
+            'Purple': '#bf5af2', 
+            'Orange': '#ff9f0a', 
+            'White': '#d1d1d6', 
+            'Red': '#ff453a', 
+            'Yellow': '#ffd60a'
+        };
+
+        // State Database
+        let setlist = JSON.parse(localStorage.getItem('sync-setlist')) || [];
+
+        // Tab Navigation
+        window.switchTab = function(tab) {
+            document.getElementById('tab-team').classList.remove('active');
+            document.getElementById('tab-setlist').classList.remove('active');
+            document.getElementById('view-team').classList.remove('active-view');
+            document.getElementById('view-setlist').classList.remove('active-view');
+
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.getElementById(`view-${tab}`).classList.add('active-view');
+        };
+
+        // Render Team Assignments View
+        function renderTeam() {
+            const container = document.getElementById('team-container');
+            container.innerHTML = '';
+
+            singers.forEach(singer => {
+                const savedPack = localStorage.getItem(`sync-${singer}-pack`) || 'Unassigned';
+                const savedMic = localStorage.getItem(`sync-${singer}-mic`) || 'Unassigned';
+                
+                const borderColor = micColors[savedMic] || 'var(--border)';
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-title">${singer}</div>
+                    
+                    <div class="field-label">In-Ear Pack</div>
+                    <div class="select-wrapper">
+                        <select onchange="localStorage.setItem('sync-${singer}-pack', this.value)">
+                            ${packs.map(p => `<option value="${p}" ${p === savedPack ? 'selected' : ''}>${p}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <div class="field-label">Microphone Color</div>
+                    <div class="select-wrapper">
+                        <select style="border-left-color: ${borderColor};" onchange="updateMic(this, '${singer}')">
+                            ${mics.map(m => `<option value="${m}" ${m === savedMic ? 'selected' : ''}>${m}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Live Mic Color Updater
+        window.updateMic = function(selectElem, singer) {
+            const val = selectElem.value;
+            localStorage.setItem(`sync-${singer}-mic`, val);
+            selectElem.style.borderLeftColor = micColors[val] || 'var(--border)';
+        };
+
+        // Reset Team Function
+        window.resetTeam = function() {
+            if(confirm('Reset all in-ears and mics to Unassigned?')) {
+                singers.forEach(singer => {
+                    localStorage.removeItem(`sync-${singer}-pack`);
+                    localStorage.removeItem(`sync-${singer}-mic`);
+                });
+                renderTeam();
+            }
+        };
+
+        // Render Setlist View
+        function renderSetlist() {
+            const container = document.getElementById('setlist-container');
+            container.innerHTML = '';
+            
+            if(setlist.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:var(--text-sec); margin-top:20px; font-size: 15px;">Set list is empty.</div>';
+                return;
+            }
+
+            setlist.forEach((song, index) => {
+                const item = document.createElement('div');
+                item.className = 'song-item';
+                item.innerHTML = `
+                    <div class="song-info">
+                        <div class="song-name">${song.name}</div>
+                        <div class="song-meta">
+                            <span>Key: ${song.key || '--'}</span>
+                            <span>BPM: ${song.bpm || '--'}</span>
+                        </div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteSong(${index})">✕</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Add Song Function
+        window.addSong = function() {
+            const nameEl = document.getElementById('song-name');
+            const keyEl = document.getElementById('song-key');
+            const bpmEl = document.getElementById('song-bpm');
+            
+            if(!nameEl.value.trim()) {
+                alert("Please enter a song title.");
+                return;
+            }
+            
+            setlist.push({
+                name: nameEl.value.trim(),
+                key: keyEl.value.trim().toUpperCase(),
+                bpm: bpmEl.value.trim()
+            });
+            
+            localStorage.setItem('sync-setlist', JSON.stringify(setlist));
+            
+            // Clear inputs automatically
+            nameEl.value = ''; 
+            keyEl.value = ''; 
+            bpmEl.value = '';
+            
+            renderSetlist();
+        };
+
+        // Delete Song Function
+        window.deleteSong = function(index) {
+            if(confirm('Remove this song from the set?')) {
+                setlist.splice(index, 1);
+                localStorage.setItem('sync-setlist', JSON.stringify(setlist));
+                renderSetlist();
+            }
+        };
+
+        // Initialize App
+        renderTeam();
+        renderSetlist();
+    </script>
+</body>
+</html>
