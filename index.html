@@ -192,4 +192,365 @@
         <div class="field-label" style="margin: 0 0 12px 4px;">Current Sunday Set</div>
         <div class="search-container">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle><line x1
+                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="setlist-search-bar" class="ios-input search-input" placeholder="Search set list..." oninput="renderSetlist(this.value)">
+        </div>
+        <div id="setlist-container"></div>
+        <button class="btn empty-btn" onclick="clearSetlist()">Clear Set List</button>
+    </div>
+
+    <div id="edit-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="card-title">Edit Song</div>
+            <div class="field-label">Song Title</div>
+            <input type="text" id="edit-song-name" class="ios-input" style="margin-bottom: 12px;">
+            <div class="field-label">Original Artist</div>
+            <input type="text" id="edit-song-artist" class="ios-input" style="margin-bottom: 12px;">
+            <div class="input-row" style="margin-top: 0; margin-bottom: 12px;">
+                <div style="flex: 1;">
+                    <div class="field-label">Key</div>
+                    <input type="text" id="edit-song-key" class="ios-input">
+                </div>
+                <div style="flex: 1;">
+                    <div class="field-label">BPM</div>
+                    <input type="number" id="edit-song-bpm" class="ios-input" inputmode="numeric">
+                </div>
+            </div>
+            <div class="modal-btn-row">
+                <button class="btn btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="btn add-btn" onclick="saveEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const iems = [1, 2, 3, 4];
+        const singers = ['Unassigned', 'Ally', 'Sophia', 'Cici', 'Jake', 'Yara', 'Raquel'];
+        const mics = ['Unassigned', 'Blue', 'Purple', 'Orange', 'White', 'Red', 'Yellow'];
+        const micColors = { 'Blue': '#0a84ff', 'Purple': '#bf5af2', 'Orange': '#ff9f0a', 'White': '#d1d1d6', 'Red': '#ff453a', 'Yellow': '#ffd60a' };
+        const defaultPositions = { 1: {x: 15, y: 45}, 2: {x: 35, y: 45}, 3: {x: 55, y: 45}, 4: {x: 75, y: 45} };
+
+        // Data Management
+        let setlist = JSON.parse(localStorage.getItem('sync-setlist')) || [];
+        let database = JSON.parse(localStorage.getItem('sync-database')) || [];
+        let currentEditId = null;
+
+        // ID Generator for syncing edits
+        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+
+        // Silent Migration: Assign IDs to old songs to ensure the Edit feature works perfectly
+        let needsSave = false;
+        database.forEach(s => { if(!s.id) { s.id = generateId(); needsSave = true; } });
+        setlist.forEach(s => { if(!s.id) { s.id = generateId(); needsSave = true; } });
+        if(needsSave) {
+            localStorage.setItem('sync-database', JSON.stringify(database));
+            localStorage.setItem('sync-setlist', JSON.stringify(setlist));
+        }
+
+        window.switchTab = function(tab) {
+            ['team', 'stage', 'database', 'setlist'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.remove('active');
+                document.getElementById(`view-${t}`).classList.remove('active-view');
+            });
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.getElementById(`view-${tab}`).classList.add('active-view');
+            
+            if(tab === 'stage') renderStage();
+            if(tab === 'database') { document.getElementById('db-search-bar').value = ''; renderDatabase(); }
+            if(tab === 'setlist') { document.getElementById('setlist-search-bar').value = ''; renderSetlist(); }
+        };
+
+        // UI Toggles
+        window.toggleDetails = function(id) {
+            const el = document.getElementById(`details-${id}`);
+            const icon = document.getElementById(`icon-${id}`);
+            if(el.style.display === 'block') {
+                el.style.display = 'none'; icon.style.transform = 'rotate(0deg)';
+            } else {
+                el.style.display = 'block'; icon.style.transform = 'rotate(180deg)';
+            }
+        };
+
+        // TEAM & STAGE LOGIC (Unchanged)
+        function renderTeam() {
+            const container = document.getElementById('team-container');
+            container.innerHTML = '';
+            iems.forEach(iem => {
+                const savedSinger = localStorage.getItem(`sync-iem${iem}-singer`) || 'Unassigned';
+                const savedMic = localStorage.getItem(`sync-iem${iem}-mic`) || 'Unassigned';
+                const savedNotes = localStorage.getItem(`sync-iem${iem}-notes`) || '';
+                const borderColor = micColors[savedMic] || 'var(--border)';
+                const row = document.createElement('div');
+                row.className = 'pack-row';
+                row.innerHTML = `
+                    <div class="pack-main">
+                        <div class="pack-label">IEM ${iem}</div>
+                        <div class="select-group">
+                            <select onchange="localStorage.setItem('sync-iem${iem}-singer', this.value); renderStage();">${singers.map(s => `<option value="${s}" ${s === savedSinger ? 'selected' : ''}>${s}</option>`).join('')}</select>
+                            <select class="mic-select" style="border-left-color: ${borderColor};" onchange="updateMic(this, ${iem}); renderStage();">${mics.map(m => `<option value="${m}" ${m === savedMic ? 'selected' : ''}>${m}</option>`).join('')}</select>
+                        </div>
+                    </div>
+                    <input type="text" class="ios-input notes-input" placeholder="Notes" value="${savedNotes}" oninput="localStorage.setItem('sync-iem${iem}-notes', this.value)">
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        window.updateMic = function(selectElem, iem) {
+            const val = selectElem.value;
+            localStorage.setItem(`sync-iem${iem}-mic`, val);
+            selectElem.style.borderLeftColor = micColors[val] || 'var(--border)';
+        };
+
+        function renderStage() {
+            const layer = document.getElementById('markers-layer');
+            const emptyMsg = document.getElementById('empty-stage-msg');
+            layer.innerHTML = '';
+            let hasMarkers = false;
+            iems.forEach(iem => {
+                const singer = localStorage.getItem(`sync-iem${iem}-singer`) || 'Unassigned';
+                const mic = localStorage.getItem(`sync-iem${iem}-mic`) || 'Unassigned';
+                if(singer !== 'Unassigned') {
+                    hasMarkers = true;
+                    const posX = localStorage.getItem(`sync-iem${iem}-x`) || defaultPositions[iem].x;
+                    const posY = localStorage.getItem(`sync-iem${iem}-y`) || defaultPositions[iem].y;
+                    const marker = document.createElement('div');
+                    marker.className = 'stage-marker';
+                    marker.setAttribute('data-iem', iem);
+                    marker.style.backgroundColor = micColors[mic] || '#38383a';
+                    if(mic === 'White' || mic === 'Yellow') { marker.style.color = '#000000'; marker.style.textShadow = 'none'; }
+                    marker.style.left = `${posX}%`; marker.style.top = `${posY}%`;
+                    marker.innerHTML = `<div class="marker-name">${singer.substring(0, 5)}</div><div class="marker-iem">IEM ${iem}</div>`;
+                    layer.appendChild(marker);
+                }
+            });
+            emptyMsg.style.display = hasMarkers ? 'none' : 'block';
+        }
+
+        // Drag Logic
+        const stageBox = document.getElementById('stage-box');
+        let activeDrag = null, startX, startY, initLeft, initTop;
+        stageBox.addEventListener('touchstart', (e) => {
+            const marker = e.target.closest('.stage-marker');
+            if (!marker) return;
+            activeDrag = marker;
+            const touch = e.touches[0];
+            startX = touch.clientX; startY = touch.clientY;
+            initLeft = activeDrag.offsetLeft; initTop = activeDrag.offsetTop;
+            activeDrag.style.transform = 'scale(1.15)'; activeDrag.style.zIndex = 100;
+            e.preventDefault(); 
+        }, { passive: false });
+        stageBox.addEventListener('touchmove', (e) => {
+            if (!activeDrag) return;
+            e.preventDefault(); 
+            const touch = e.touches[0];
+            let newLeft = initLeft + (touch.clientX - startX);
+            let newTop = initTop + (touch.clientY - startY);
+            const maxW = stageBox.clientWidth - activeDrag.offsetWidth;
+            const maxH = stageBox.clientHeight - activeDrag.offsetHeight;
+            if (newLeft < 0) newLeft = 0; if (newLeft > maxW) newLeft = maxW;
+            if (newTop < 0) newTop = 0; if (newTop > maxH) newTop = maxH;
+            activeDrag.style.left = `${newLeft}px`; activeDrag.style.top = `${newTop}px`;
+        }, { passive: false });
+        stageBox.addEventListener('touchend', () => {
+            if (!activeDrag) return;
+            activeDrag.style.transform = 'scale(1)'; activeDrag.style.zIndex = 1;
+            const percX = (activeDrag.offsetLeft / stageBox.clientWidth) * 100;
+            const percY = (activeDrag.offsetTop / stageBox.clientHeight) * 100;
+            const iem = activeDrag.getAttribute('data-iem');
+            localStorage.setItem(`sync-iem${iem}-x`, percX); localStorage.setItem(`sync-iem${iem}-y`, percY);
+            activeDrag = null;
+        });
+
+        window.resetTeam = function() {
+            if(confirm('Reset all assignments, notes, and stage positions?')) {
+                iems.forEach(iem => { ['singer', 'mic', 'notes', 'x', 'y'].forEach(k => localStorage.removeItem(`sync-iem${iem}-${k}`)); });
+                renderTeam(); renderStage();
+            }
+        };
+
+        // DATABASE LOGIC (Master Library)
+        window.renderDatabase = function(query = '') {
+            const container = document.getElementById('database-container');
+            container.innerHTML = '';
+            
+            const filteredDB = database.filter(song => song.name.toLowerCase().includes(query.toLowerCase()));
+            if(filteredDB.length === 0) { container.innerHTML = '<div style="text-align:center; color:var(--text-sec); margin-top:20px; font-size: 15px;">No songs found.</div>'; return; }
+            
+            filteredDB.forEach(song => {
+                const isInSetlist = setlist.some(s => s.id === song.id);
+                const hasArtist = song.artist && song.artist.trim() !== "";
+                
+                const item = document.createElement('div');
+                item.className = 'song-item';
+                item.innerHTML = `
+                    <div class="song-main-row">
+                        <div class="song-info">
+                            <div class="song-name-row" onclick="toggleDetails('${song.id}')">
+                                <div class="song-name">${song.name}</div>
+                                ${hasArtist ? `<div class="expand-icon" id="icon-${song.id}">▼</div>` : ''}
+                            </div>
+                            <div class="song-meta"><span>Key: ${song.key || '--'}</span><span>BPM: ${song.bpm || '--'}</span></div>
+                        </div>
+                        <div class="action-group">
+                            <button class="icon-btn btn-edit" onclick="openEditModal('${song.id}')">✎</button>
+                            ${isInSetlist ? `<button class="icon-btn btn-check">✓</button>` : `<button class="icon-btn btn-add" onclick="pushToSetlist('${song.id}')">+</button>`}
+                            <button class="icon-btn btn-remove" style="background:transparent;" onclick="deleteFromDB('${song.id}')">🗑</button>
+                        </div>
+                    </div>
+                    ${hasArtist ? `<div class="song-details" id="details-${song.id}"><div class="artist-label">Artist: ${song.artist}</div></div>` : ''}
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        window.addSongToDB = function() {
+            const n = document.getElementById('db-song-name'), a = document.getElementById('db-song-artist'), k = document.getElementById('db-song-key'), b = document.getElementById('db-song-bpm');
+            if(!n.value.trim()) return alert("Please enter a song title.");
+            database.push({ id: generateId(), name: n.value.trim(), artist: a.value.trim(), key: k.value.trim().toUpperCase(), bpm: b.value.trim() });
+            localStorage.setItem('sync-database', JSON.stringify(database));
+            n.value = ''; a.value = ''; k.value = ''; b.value = ''; 
+            document.getElementById('db-search-bar').value = ''; 
+            renderDatabase();
+        };
+
+        window.deleteFromDB = function(id) {
+            if(confirm('Permanently delete this song from your master library?')) { 
+                database = database.filter(s => s.id !== id);
+                localStorage.setItem('sync-database', JSON.stringify(database)); 
+                renderDatabase(document.getElementById('db-search-bar').value); 
+            }
+        };
+
+        window.pushToSetlist = function(id) {
+            const song = database.find(s => s.id === id);
+            if(song && !setlist.some(s => s.id === id)) {
+                // Clone the song so setlist can have its own Lead Singer field while retaining the matching ID
+                setlist.push({...song, singer: ""});
+                localStorage.setItem('sync-setlist', JSON.stringify(setlist));
+                renderDatabase(document.getElementById('db-search-bar').value); 
+            }
+        };
+
+        // EDIT LOGIC
+        window.openEditModal = function(id) {
+            const song = database.find(s => s.id === id);
+            if(!song) return;
+            currentEditId = id;
+            document.getElementById('edit-song-name').value = song.name || '';
+            document.getElementById('edit-song-artist').value = song.artist || '';
+            document.getElementById('edit-song-key').value = song.key || '';
+            document.getElementById('edit-song-bpm').value = song.bpm || '';
+            document.getElementById('edit-modal').style.display = 'flex';
+        };
+
+        window.closeEditModal = function() {
+            document.getElementById('edit-modal').style.display = 'none';
+            currentEditId = null;
+        };
+
+        window.saveEdit = function() {
+            const n = document.getElementById('edit-song-name').value;
+            const a = document.getElementById('edit-song-artist').value;
+            const k = document.getElementById('edit-song-key').value;
+            const b = document.getElementById('edit-song-bpm').value;
+
+            if(!n.trim()) return alert("Title is required.");
+
+            // Update Master DB
+            const dbSong = database.find(s => s.id === currentEditId);
+            if(dbSong) { dbSong.name = n.trim(); dbSong.artist = a.trim(); dbSong.key = k.trim().toUpperCase(); dbSong.bpm = b.trim(); }
+            localStorage.setItem('sync-database', JSON.stringify(database));
+
+            // Sync with Setlist automatically
+            const setSong = setlist.find(s => s.id === currentEditId);
+            if(setSong) { setSong.name = n.trim(); setSong.artist = a.trim(); setSong.key = k.trim().toUpperCase(); setSong.bpm = b.trim(); }
+            localStorage.setItem('sync-setlist', JSON.stringify(setlist));
+
+            closeEditModal();
+            renderDatabase(document.getElementById('db-search-bar').value);
+            if(document.getElementById('view-setlist').classList.contains('active-view')) {
+                renderSetlist(document.getElementById('setlist-search-bar').value);
+            }
+        };
+
+        // SETLIST LOGIC (Current Sunday)
+        window.renderSetlist = function(query = '') {
+            const container = document.getElementById('setlist-container');
+            container.innerHTML = '';
+            
+            const filteredSetlist = setlist.filter(song => song.name.toLowerCase().includes(query.toLowerCase()));
+            if(filteredSetlist.length === 0) { container.innerHTML = '<div style="text-align:center; color:var(--text-sec); margin-top:20px; font-size: 15px;">Set list is empty. Add songs from your Library.</div>'; return; }
+            
+            filteredSetlist.forEach(song => {
+                const hasArtist = song.artist && song.artist.trim() !== "";
+                const item = document.createElement('div');
+                item.className = 'song-item';
+                item.innerHTML = `
+                    <div class="song-main-row">
+                        <div class="song-info">
+                            <div class="song-name-row" onclick="toggleDetails('set-${song.id}')">
+                                <div class="song-name">${song.name}</div>
+                                <div class="expand-icon" id="icon-set-${song.id}">▼</div>
+                            </div>
+                            <div class="song-meta">
+                                <span>Key: ${song.key || '--'}</span>
+                                <span>BPM: ${song.bpm || '--'}</span>
+                                ${song.singer ? `<span style="background: rgba(10, 132, 255, 0.2); color: var(--primary);">🎤 ${song.singer}</span>` : ''}
+                            </div>
+                        </div>
+                        <button class="icon-btn btn-remove" onclick="removeFromSetlist('${song.id}')">✕</button>
+                    </div>
+                    <div class="song-details" id="details-set-${song.id}">
+                        ${hasArtist ? `<div class="artist-label">Artist: ${song.artist}</div>` : ''}
+                        <div class="singer-input-container">
+                            <input type="text" class="ios-input" placeholder="Assign Lead Singer(s)..." value="${song.singer || ''}" oninput="updateSetlistSinger('${song.id}', this.value)">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        window.updateSetlistSinger = function(id, val) {
+            const song = setlist.find(s => s.id === id);
+            if(song) {
+                song.singer = val;
+                localStorage.setItem('sync-setlist', JSON.stringify(setlist));
+                // Only re-render the preview badges, not the whole list, to prevent input losing focus while typing
+                const query = document.getElementById('setlist-search-bar').value;
+                // Minor delay to update visually after they finish typing
+                clearTimeout(window.singerTypingTimer);
+                window.singerTypingTimer = setTimeout(() => {
+                    const activeDetails = [];
+                    // Remember which dropdowns are open before re-rendering
+                    setlist.forEach(s => {
+                        const el = document.getElementById(`details-set-${s.id}`);
+                        if(el && el.style.display === 'block') activeDetails.push(s.id);
+                    });
+                    renderSetlist(query);
+                    activeDetails.forEach(sid => toggleDetails(`set-${sid}`)); // Re-open them
+                }, 1000);
+            }
+        };
+        
+        window.removeFromSetlist = function(id) {
+            setlist = setlist.filter(s => s.id !== id);
+            localStorage.setItem('sync-setlist', JSON.stringify(setlist)); 
+            renderSetlist(document.getElementById('setlist-search-bar').value); 
+        };
+
+        window.clearSetlist = function() {
+            if(confirm('Clear all songs from the current Sunday set list? (They will remain in your master library).')) {
+                setlist = [];
+                localStorage.setItem('sync-setlist', JSON.stringify(setlist));
+                renderSetlist();
+            }
+        };
+
+        // Init
+        renderTeam();
+    </script>
+</body>
+</html>
