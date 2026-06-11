@@ -37,7 +37,6 @@
             background: var(--bg);
             color: var(--text);
             margin: 0;
-            /* Accounts for iPhone 15 Pro Dynamic Island */
             padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom) 16px;
             -webkit-font-smoothing: antialiased;
         }
@@ -82,7 +81,7 @@
         .view.active-view { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Cards */
+        /* Shared Card UI */
         .card {
             background: var(--card);
             border-radius: 16px;
@@ -104,38 +103,60 @@
             margin-bottom: 8px;
             letter-spacing: 0.5px;
         }
-        .select-wrapper { margin-bottom: 20px; }
-        .select-wrapper:last-child { margin-bottom: 0; }
+
+        /* Horizontal Pack Row Design */
+        .pack-row {
+            display: flex;
+            align-items: center;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+            gap: 12px;
+        }
+        .pack-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            width: 45px;
+            flex-shrink: 0;
+        }
+        .select-group {
+            display: flex;
+            flex: 1;
+            gap: 8px;
+            min-width: 0;
+        }
 
         select, .ios-input {
             width: 100%;
             box-sizing: border-box;
-            padding: 14px 16px;
+            padding: 14px 12px 14px 12px;
             border-radius: 12px;
             border: 1px solid var(--border);
             background: var(--bg);
             color: var(--text);
-            font-size: 16px; /* 16px strictly prevents Safari from auto-zooming */
+            font-size: 16px; /* Strictly prevents Safari zoom */
             font-weight: 500;
             appearance: none;
             -webkit-appearance: none;
             transition: border-color 0.2s ease;
         }
+        
         select {
+            flex: 1;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238e8e93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 14px center;
-            background-size: 16px;
-            border-left-width: 6px;
+            background-position: right 8px center;
+            background-size: 14px;
+            padding-right: 26px; /* Make room for arrow */
+            text-overflow: ellipsis;
         }
-
-        .ios-input::placeholder { color: var(--text-sec); opacity: 0.8; }
+        .mic-select { border-left-width: 6px; }
         
-        .input-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 12px;
-        }
+        .ios-input::placeholder { color: var(--text-sec); opacity: 0.8; }
+        .input-row { display: flex; gap: 12px; margin-top: 12px; }
 
         /* Buttons */
         .btn {
@@ -195,19 +216,17 @@
         <h1>ServiceSync</h1>
     </div>
 
-    <!-- iOS Style Segmented Control -->
     <div class="segmented-control">
         <div class="segment active" id="tab-team" onclick="switchTab('team')">Team Setup</div>
         <div class="segment" id="tab-setlist" onclick="switchTab('setlist')">Set List</div>
     </div>
 
-    <!-- Team View -->
     <div id="view-team" class="view active-view">
+        <div class="field-label" style="margin: 0 0 12px 4px;">Monitor Assignments</div>
         <div id="team-container"></div>
         <button class="btn reset-btn" onclick="resetTeam()">Reset Assignments</button>
     </div>
 
-    <!-- Setlist View -->
     <div id="view-setlist" class="view">
         <div class="card">
             <div class="card-title">Add New Song</div>
@@ -224,12 +243,11 @@
     </div>
 
     <script>
-        // Core Data
-        const singers = ['Ally', 'Sophia', 'Cici', 'Jake', 'Yara', 'Raquel'];
-        const packs = ['Unassigned', 'Pack 1', 'Pack 2', 'Pack 3', 'Pack 4'];
+        // Core Data updated to prioritize IEMs
+        const iems = [1, 2, 3, 4];
+        const singers = ['Unassigned', 'Ally', 'Sophia', 'Cici', 'Jake', 'Yara', 'Raquel'];
         const mics = ['Unassigned', 'Blue', 'Purple', 'Orange', 'White', 'Red', 'Yellow'];
         
-        // Exact physical mic colors. We use an off-white/gray for "White" so it remains visible against the white card
         const micColors = {
             'Blue': '#0a84ff', 
             'Purple': '#bf5af2', 
@@ -239,10 +257,8 @@
             'Yellow': '#ffd60a'
         };
 
-        // State Database
         let setlist = JSON.parse(localStorage.getItem('sync-setlist')) || [];
 
-        // Tab Navigation
         window.switchTab = function(tab) {
             document.getElementById('tab-team').classList.remove('active');
             document.getElementById('tab-setlist').classList.remove('active');
@@ -253,59 +269,49 @@
             document.getElementById(`view-${tab}`).classList.add('active-view');
         };
 
-        // Render Team Assignments View
+        // Render Horizontal Team View
         function renderTeam() {
             const container = document.getElementById('team-container');
             container.innerHTML = '';
 
-            singers.forEach(singer => {
-                const savedPack = localStorage.getItem(`sync-${singer}-pack`) || 'Unassigned';
-                const savedMic = localStorage.getItem(`sync-${singer}-mic`) || 'Unassigned';
-                
+            iems.forEach(iem => {
+                const savedSinger = localStorage.getItem(`sync-iem${iem}-singer`) || 'Unassigned';
+                const savedMic = localStorage.getItem(`sync-iem${iem}-mic`) || 'Unassigned';
                 const borderColor = micColors[savedMic] || 'var(--border)';
 
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="card-title">${singer}</div>
-                    
-                    <div class="field-label">In-Ear Pack</div>
-                    <div class="select-wrapper">
-                        <select onchange="localStorage.setItem('sync-${singer}-pack', this.value)">
-                            ${packs.map(p => `<option value="${p}" ${p === savedPack ? 'selected' : ''}>${p}</option>`).join('')}
+                const row = document.createElement('div');
+                row.className = 'pack-row';
+                row.innerHTML = `
+                    <div class="pack-label">IEM ${iem}</div>
+                    <div class="select-group">
+                        <select onchange="localStorage.setItem('sync-iem${iem}-singer', this.value)">
+                            ${singers.map(s => `<option value="${s}" ${s === savedSinger ? 'selected' : ''}>${s}</option>`).join('')}
                         </select>
-                    </div>
-
-                    <div class="field-label">Microphone Color</div>
-                    <div class="select-wrapper">
-                        <select style="border-left-color: ${borderColor};" onchange="updateMic(this, '${singer}')">
+                        <select class="mic-select" style="border-left-color: ${borderColor};" onchange="updateMic(this, ${iem})">
                             ${mics.map(m => `<option value="${m}" ${m === savedMic ? 'selected' : ''}>${m}</option>`).join('')}
                         </select>
                     </div>
                 `;
-                container.appendChild(card);
+                container.appendChild(row);
             });
         }
 
-        // Live Mic Color Updater
-        window.updateMic = function(selectElem, singer) {
+        window.updateMic = function(selectElem, iem) {
             const val = selectElem.value;
-            localStorage.setItem(`sync-${singer}-mic`, val);
+            localStorage.setItem(`sync-iem${iem}-mic`, val);
             selectElem.style.borderLeftColor = micColors[val] || 'var(--border)';
         };
 
-        // Reset Team Function
         window.resetTeam = function() {
-            if(confirm('Reset all in-ears and mics to Unassigned?')) {
-                singers.forEach(singer => {
-                    localStorage.removeItem(`sync-${singer}-pack`);
-                    localStorage.removeItem(`sync-${singer}-mic`);
+            if(confirm('Reset all assignments to Unassigned?')) {
+                iems.forEach(iem => {
+                    localStorage.removeItem(`sync-iem${iem}-singer`);
+                    localStorage.removeItem(`sync-iem${iem}-mic`);
                 });
                 renderTeam();
             }
         };
 
-        // Render Setlist View
         function renderSetlist() {
             const container = document.getElementById('setlist-container');
             container.innerHTML = '';
@@ -332,7 +338,6 @@
             });
         }
 
-        // Add Song Function
         window.addSong = function() {
             const nameEl = document.getElementById('song-name');
             const keyEl = document.getElementById('song-key');
@@ -350,16 +355,10 @@
             });
             
             localStorage.setItem('sync-setlist', JSON.stringify(setlist));
-            
-            // Clear inputs automatically
-            nameEl.value = ''; 
-            keyEl.value = ''; 
-            bpmEl.value = '';
-            
+            nameEl.value = ''; keyEl.value = ''; bpmEl.value = '';
             renderSetlist();
         };
 
-        // Delete Song Function
         window.deleteSong = function(index) {
             if(confirm('Remove this song from the set?')) {
                 setlist.splice(index, 1);
@@ -368,7 +367,6 @@
             }
         };
 
-        // Initialize App
         renderTeam();
         renderSetlist();
     </script>
