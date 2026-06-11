@@ -7,7 +7,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="StageOS">
-    
     <meta name="theme-color" content="#000000">
     
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/000000/FFFFFF?text=OS">
@@ -23,12 +22,11 @@
             --text-sec: #8e8e93;
             --border: #38383a;
             --primary: #0a84ff;
+            --green: #30d158;
             --red: #ff453a;
         }
 
-        html {
-            background-color: var(--bg);
-        }
+        html { background-color: var(--bg); }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
@@ -62,6 +60,7 @@
             color: var(--text);
             cursor: pointer;
             transition: background 0.2s ease;
+            white-space: nowrap;
         }
         .segment.active {
             background: var(--input-bg);
@@ -74,25 +73,12 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
         /* General UI */
-        .card { 
-            background: var(--card);
-            border-radius: 16px;
-            padding: 18px; 
-            margin-bottom: 16px; 
-        }
+        .card { background: var(--card); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
         .card-title { font-size: 19px; font-weight: 600; margin-bottom: 18px; letter-spacing: -0.3px; }
         .field-label { font-size: 12px; font-weight: 600; color: var(--text-sec); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
 
         /* Horizontal Pack Row */
-        .pack-row { 
-            background: var(--card);
-            border-radius: 16px;
-            padding: 14px 16px; 
-            margin-bottom: 12px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-        }
+        .pack-row { background: var(--card); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
         .pack-main { display: flex; align-items: center; gap: 12px; }
         .pack-label { font-size: 15px; font-weight: 700; color: var(--text); width: 45px; flex-shrink: 0; }
         .select-group { display: flex; flex: 1; gap: 8px; min-width: 0; }
@@ -113,43 +99,14 @@
         .input-row { display: flex; gap: 12px; margin-top: 12px; }
 
         /* Search Bar */
-        .search-container {
-            position: relative;
-            margin-bottom: 16px;
-        }
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 16px;
-            height: 16px;
-            opacity: 0.6;
-        }
-        .search-input {
-            padding-left: 36px;
-            background: var(--card);
-            border: none;
-        }
+        .search-container { position: relative; margin-bottom: 16px; }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; opacity: 0.6; }
+        .search-input { padding-left: 36px; background: var(--card); border: none; }
 
-        /* Drag & Drop Stage Area */
-        .stage-container {
-            background: var(--card); 
-            border: 1px solid var(--border);
-            border-radius: 20px; height: 350px; position: relative; overflow: hidden;
-        }
-        .stage-front-label {
-            position: absolute; bottom: 10px; width: 100%; text-align: center;
-            font-size: 11px; font-weight: 700; color: var(--text-sec); text-transform: uppercase; letter-spacing: 2px;
-        }
-        .stage-marker {
-            width: 60px; height: 60px; border-radius: 30px; position: absolute;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-            border: 2px solid rgba(255,255,255,0.15); box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-            touch-action: none; 
-            transition: transform 0.1s;
-        }
+        /* Stage Area */
+        .stage-container { background: var(--card); border: 1px solid var(--border); border-radius: 20px; height: 350px; position: relative; overflow: hidden; }
+        .stage-front-label { position: absolute; bottom: 10px; width: 100%; text-align: center; font-size: 11px; font-weight: 700; color: var(--text-sec); text-transform: uppercase; letter-spacing: 2px; }
+        .stage-marker { width: 60px; height: 60px; border-radius: 30px; position: absolute; display: flex; flex-direction: column; justify-content: center; align-items: center; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.15); box-shadow: 0 6px 12px rgba(0,0,0,0.3); touch-action: none; transition: transform 0.1s; }
         .marker-name { font-size: 13px; font-weight: 700; line-height: 1.1; }
         .marker-iem { font-size: 10px; font-weight: 500; opacity: 0.9; margin-top: 2px; }
         .empty-stage { text-align: center; color: var(--text-sec); font-size: 14px; margin-top: 160px; }
@@ -158,14 +115,21 @@
         .btn { width: 100%; padding: 16px; border-radius: 14px; font-size: 17px; font-weight: 600; border: none; color: white; cursor: pointer; text-align: center; }
         .add-btn { background: var(--primary); margin-top: 16px; }
         .reset-btn { background: var(--card); color: var(--red); border: 1px solid var(--border); margin-top: 24px; margin-bottom: 40px; }
+        .empty-btn { background: rgba(255, 69, 58, 0.1); color: var(--red); margin-top: 16px; margin-bottom: 40px; }
 
-        /* Setlist Items */
+        /* List Items */
         .song-item { display: flex; justify-content: space-between; align-items: center; background: var(--card); border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; }
         .song-info { flex: 1; }
         .song-name { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
         .song-meta { font-size: 13px; color: var(--text-sec); display: flex; gap: 8px; }
         .song-meta span { background: var(--input-bg); padding: 4px 8px; border-radius: 6px; font-weight: 600; }
-        .delete-btn { background: rgba(255, 69, 58, 0.1); color: var(--red); border: none; width: 34px; height: 34px; border-radius: 17px; font-size: 16px; display: flex; align-items: center; justify-content: center; margin-left: 12px; }
+        
+        .action-group { display: flex; gap: 8px; margin-left: 12px; }
+        .icon-btn { border: none; width: 34px; height: 34px; border-radius: 17px; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .btn-remove { background: rgba(255, 69, 58, 0.1); color: var(--red); font-size: 16px; }
+        .btn-add { background: rgba(10, 132, 255, 0.15); color: var(--primary); }
+        .btn-check { background: rgba(48, 209, 88, 0.15); color: var(--green); }
+        .btn-delete-db { background: transparent; color: var(--text-sec); font-size: 14px; opacity: 0.6; }
     </style>
 </head>
 <body>
@@ -174,18 +138,22 @@
         <h1>StageOS</h1>
     </div>
 
+    <!-- Segmented Control Updated to 4 Tabs -->
     <div class="segmented-control">
         <div class="segment active" id="tab-team" onclick="switchTab('team')">Team</div>
-        <div class="segment" id="tab-stage" onclick="switchTab('stage')">Stage Plot</div>
+        <div class="segment" id="tab-stage" onclick="switchTab('stage')">Stage</div>
+        <div class="segment" id="tab-database" onclick="switchTab('database')">Songs</div>
         <div class="segment" id="tab-setlist" onclick="switchTab('setlist')">Set List</div>
     </div>
 
+    <!-- Team View -->
     <div id="view-team" class="view active-view">
         <div class="field-label" style="margin: 0 0 12px 4px;">Monitor Assignments</div>
         <div id="team-container"></div>
         <button class="btn reset-btn" onclick="resetTeam()">Reset All Assignments</button>
     </div>
 
+    <!-- Stage View -->
     <div id="view-stage" class="view">
         <div class="field-label" style="margin: 0 0 12px 4px;">Drag to arrange</div>
         <div class="stage-container" id="stage-box">
@@ -195,48 +163,60 @@
         </div>
     </div>
 
-    <div id="view-setlist" class="view">
+    <!-- Database View (Master Song Library) -->
+    <div id="view-database" class="view">
         <div class="card">
-            <div class="card-title">Add New Song</div>
-            <input type="text" id="song-name" placeholder="Song Title" class="ios-input">
+            <div class="card-title">Add to Song Library</div>
+            <input type="text" id="db-song-name" placeholder="Song Title" class="ios-input">
             <div class="input-row">
-                <input type="text" id="song-key" placeholder="Key (e.g. C#)" class="ios-input">
-                <input type="number" id="song-bpm" placeholder="BPM" class="ios-input" inputmode="numeric">
+                <input type="text" id="db-song-key" placeholder="Key (e.g. C#)" class="ios-input">
+                <input type="number" id="db-song-bpm" placeholder="BPM" class="ios-input" inputmode="numeric">
             </div>
-            <button class="btn add-btn" onclick="addSong()">Add to Set</button>
+            <button class="btn add-btn" onclick="addSongToDB()">Save to Library</button>
         </div>
         
-        <div class="field-label" style="margin: 24px 0 12px 4px;">Current Set</div>
-        
+        <div class="field-label" style="margin: 24px 0 12px 4px;">Master Library</div>
         <div class="search-container">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="text" id="search-bar" class="ios-input search-input" placeholder="Search songs..." oninput="renderSetlist(this.value)">
+            <input type="text" id="db-search-bar" class="ios-input search-input" placeholder="Search library..." oninput="renderDatabase(this.value)">
         </div>
+        <div id="database-container"></div>
+    </div>
 
+    <!-- Setlist View (Current Sunday) -->
+    <div id="view-setlist" class="view">
+        <div class="field-label" style="margin: 0 0 12px 4px;">Current Sunday Set</div>
+        <div class="search-container">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="setlist-search-bar" class="ios-input search-input" placeholder="Search set list..." oninput="renderSetlist(this.value)">
+        </div>
         <div id="setlist-container"></div>
+        <button class="btn empty-btn" onclick="clearSetlist()">Clear Set List</button>
     </div>
 
     <script>
         const iems = [1, 2, 3, 4];
         const singers = ['Unassigned', 'Ally', 'Sophia', 'Cici', 'Jake', 'Yara', 'Raquel'];
         const mics = ['Unassigned', 'Blue', 'Purple', 'Orange', 'White', 'Red', 'Yellow'];
-        
-        // Exact hardware color matching, dimmed slightly to fit dark mode aesthetics perfectly
-        const micColors = {
-            'Blue': '#0a84ff', 'Purple': '#bf5af2', 'Orange': '#ff9f0a', 
-            'White': '#d1d1d6', 'Red': '#ff453a', 'Yellow': '#ffd60a' 
-        };
-
+        const micColors = { 'Blue': '#0a84ff', 'Purple': '#bf5af2', 'Orange': '#ff9f0a', 'White': '#d1d1d6', 'Red': '#ff453a', 'Yellow': '#ffd60a' };
         const defaultPositions = { 1: {x: 15, y: 45}, 2: {x: 35, y: 45}, 3: {x: 55, y: 45}, 4: {x: 75, y: 45} };
 
-        // Data stays intact even after code update due to localStorage matching keys
+        // Data Management
         let setlist = JSON.parse(localStorage.getItem('sync-setlist')) || [];
+        let database = JSON.parse(localStorage.getItem('sync-database')) || [];
+
+        // Auto-Migration: If library is empty but setlist has songs, save them to the library automatically.
+        if (database.length === 0 && setlist.length > 0) {
+            database = [...setlist];
+            localStorage.setItem('sync-database', JSON.stringify(database));
+        }
 
         window.switchTab = function(tab) {
-            ['team', 'stage', 'setlist'].forEach(t => {
+            ['team', 'stage', 'database', 'setlist'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.remove('active');
                 document.getElementById(`view-${t}`).classList.remove('active-view');
             });
@@ -244,35 +224,27 @@
             document.getElementById(`view-${tab}`).classList.add('active-view');
             
             if(tab === 'stage') renderStage();
-            // Clear search bar when tabbing to setlist to ensure full list shows
-            if(tab === 'setlist') {
-                document.getElementById('search-bar').value = '';
-                renderSetlist();
-            }
+            if(tab === 'database') { document.getElementById('db-search-bar').value = ''; renderDatabase(); }
+            if(tab === 'setlist') { document.getElementById('setlist-search-bar').value = ''; renderSetlist(); }
         };
 
+        // TEAM & STAGE LOGIC (Unchanged)
         function renderTeam() {
             const container = document.getElementById('team-container');
             container.innerHTML = '';
-
             iems.forEach(iem => {
                 const savedSinger = localStorage.getItem(`sync-iem${iem}-singer`) || 'Unassigned';
                 const savedMic = localStorage.getItem(`sync-iem${iem}-mic`) || 'Unassigned';
                 const savedNotes = localStorage.getItem(`sync-iem${iem}-notes`) || '';
                 const borderColor = micColors[savedMic] || 'var(--border)';
-
                 const row = document.createElement('div');
                 row.className = 'pack-row';
                 row.innerHTML = `
                     <div class="pack-main">
                         <div class="pack-label">IEM ${iem}</div>
                         <div class="select-group">
-                            <select onchange="localStorage.setItem('sync-iem${iem}-singer', this.value); renderStage();">
-                                ${singers.map(s => `<option value="${s}" ${s === savedSinger ? 'selected' : ''}>${s}</option>`).join('')}
-                            </select>
-                            <select class="mic-select" style="border-left-color: ${borderColor};" onchange="updateMic(this, ${iem}); renderStage();">
-                                ${mics.map(m => `<option value="${m}" ${m === savedMic ? 'selected' : ''}>${m}</option>`).join('')}
-                            </select>
+                            <select onchange="localStorage.setItem('sync-iem${iem}-singer', this.value); renderStage();">${singers.map(s => `<option value="${s}" ${s === savedSinger ? 'selected' : ''}>${s}</option>`).join('')}</select>
+                            <select class="mic-select" style="border-left-color: ${borderColor};" onchange="updateMic(this, ${iem}); renderStage();">${mics.map(m => `<option value="${m}" ${m === savedMic ? 'selected' : ''}>${m}</option>`).join('')}</select>
                         </div>
                     </div>
                     <input type="text" class="ios-input notes-input" placeholder="Notes" value="${savedNotes}" oninput="localStorage.setItem('sync-iem${iem}-notes', this.value)">
@@ -291,126 +263,137 @@
             const layer = document.getElementById('markers-layer');
             const emptyMsg = document.getElementById('empty-stage-msg');
             layer.innerHTML = '';
-
             let hasMarkers = false;
-
             iems.forEach(iem => {
                 const singer = localStorage.getItem(`sync-iem${iem}-singer`) || 'Unassigned';
                 const mic = localStorage.getItem(`sync-iem${iem}-mic`) || 'Unassigned';
-
                 if(singer !== 'Unassigned') {
                     hasMarkers = true;
-                    
                     const posX = localStorage.getItem(`sync-iem${iem}-x`) || defaultPositions[iem].x;
                     const posY = localStorage.getItem(`sync-iem${iem}-y`) || defaultPositions[iem].y;
-
                     const marker = document.createElement('div');
                     marker.className = 'stage-marker';
                     marker.setAttribute('data-iem', iem);
                     marker.style.backgroundColor = micColors[mic] || '#38383a';
-                    
-                    // Specific logic to ensure text is readable on white mics
-                    if(mic === 'White' || mic === 'Yellow') {
-                        marker.style.color = '#000000';
-                        marker.style.textShadow = 'none';
-                    }
-                    
+                    if(mic === 'White' || mic === 'Yellow') { marker.style.color = '#000000'; marker.style.textShadow = 'none'; }
                     marker.style.left = `${posX}%`;
                     marker.style.top = `${posY}%`;
-                    
-                    const shortName = singer.substring(0, 5); 
-                    marker.innerHTML = `<div class="marker-name">${shortName}</div><div class="marker-iem">IEM ${iem}</div>`;
+                    marker.innerHTML = `<div class="marker-name">${singer.substring(0, 5)}</div><div class="marker-iem">IEM ${iem}</div>`;
                     layer.appendChild(marker);
                 }
             });
-
             emptyMsg.style.display = hasMarkers ? 'none' : 'block';
         }
 
-        /* --- Drag and Drop Logic --- */
+        // Drag Logic
         const stageBox = document.getElementById('stage-box');
-        let activeDrag = null;
-        let startX, startY, initLeft, initTop;
-
+        let activeDrag = null, startX, startY, initLeft, initTop;
         stageBox.addEventListener('touchstart', (e) => {
             const marker = e.target.closest('.stage-marker');
             if (!marker) return;
-            
             activeDrag = marker;
             const touch = e.touches[0];
-            startX = touch.clientX;
-            startY = touch.clientY;
-            initLeft = activeDrag.offsetLeft;
-            initTop = activeDrag.offsetTop;
-            
-            activeDrag.style.transform = 'scale(1.15)';
-            activeDrag.style.zIndex = 100;
+            startX = touch.clientX; startY = touch.clientY;
+            initLeft = activeDrag.offsetLeft; initTop = activeDrag.offsetTop;
+            activeDrag.style.transform = 'scale(1.15)'; activeDrag.style.zIndex = 100;
             e.preventDefault(); 
         }, { passive: false });
-
         stageBox.addEventListener('touchmove', (e) => {
             if (!activeDrag) return;
             e.preventDefault(); 
-            
             const touch = e.touches[0];
-            const dx = touch.clientX - startX;
-            const dy = touch.clientY - startY;
-            
-            let newLeft = initLeft + dx;
-            let newTop = initTop + dy;
-            
+            let newLeft = initLeft + (touch.clientX - startX);
+            let newTop = initTop + (touch.clientY - startY);
             const maxW = stageBox.clientWidth - activeDrag.offsetWidth;
             const maxH = stageBox.clientHeight - activeDrag.offsetHeight;
-            
             if (newLeft < 0) newLeft = 0; if (newLeft > maxW) newLeft = maxW;
             if (newTop < 0) newTop = 0; if (newTop > maxH) newTop = maxH;
-            
-            activeDrag.style.left = `${newLeft}px`;
-            activeDrag.style.top = `${newTop}px`;
+            activeDrag.style.left = `${newLeft}px`; activeDrag.style.top = `${newTop}px`;
         }, { passive: false });
-
         stageBox.addEventListener('touchend', () => {
             if (!activeDrag) return;
-            
-            activeDrag.style.transform = 'scale(1)';
-            activeDrag.style.zIndex = 1;
-            
+            activeDrag.style.transform = 'scale(1)'; activeDrag.style.zIndex = 1;
             const percX = (activeDrag.offsetLeft / stageBox.clientWidth) * 100;
             const percY = (activeDrag.offsetTop / stageBox.clientHeight) * 100;
-            
             const iem = activeDrag.getAttribute('data-iem');
-            localStorage.setItem(`sync-iem${iem}-x`, percX);
-            localStorage.setItem(`sync-iem${iem}-y`, percY);
-            
+            localStorage.setItem(`sync-iem${iem}-x`, percX); localStorage.setItem(`sync-iem${iem}-y`, percY);
             activeDrag = null;
         });
 
         window.resetTeam = function() {
             if(confirm('Reset all assignments, notes, and stage positions?')) {
-                iems.forEach(iem => {
-                    ['singer', 'mic', 'notes', 'x', 'y'].forEach(k => localStorage.removeItem(`sync-iem${iem}-${k}`));
-                });
-                renderTeam();
-                renderStage();
+                iems.forEach(iem => { ['singer', 'mic', 'notes', 'x', 'y'].forEach(k => localStorage.removeItem(`sync-iem${iem}-${k}`)); });
+                renderTeam(); renderStage();
             }
         };
 
-        // Render Setlist with Search Filter Logic
+        // DATABASE LOGIC (Master Library)
+        window.renderDatabase = function(query = '') {
+            const container = document.getElementById('database-container');
+            container.innerHTML = '';
+            
+            const mappedDB = database.map((song, index) => ({...song, originalIndex: index}));
+            const filteredDB = mappedDB.filter(song => song.name.toLowerCase().includes(query.toLowerCase()));
+
+            if(filteredDB.length === 0) { container.innerHTML = '<div style="text-align:center; color:var(--text-sec); margin-top:20px; font-size: 15px;">No songs found.</div>'; return; }
+            
+            filteredDB.forEach(song => {
+                // Check if song is already in the active setlist to change the button state
+                const isInSetlist = setlist.some(s => s.name === song.name);
+                
+                const item = document.createElement('div');
+                item.className = 'song-item';
+                item.innerHTML = `
+                    <div class="song-info">
+                        <div class="song-name">${song.name}</div>
+                        <div class="song-meta"><span>Key: ${song.key || '--'}</span><span>BPM: ${song.bpm || '--'}</span></div>
+                    </div>
+                    <div class="action-group">
+                        <button class="icon-btn btn-delete-db" onclick="deleteFromDB(${song.originalIndex})">🗑</button>
+                        ${isInSetlist 
+                            ? `<button class="icon-btn btn-check">✓</button>` 
+                            : `<button class="icon-btn btn-add" onclick="pushToSetlist(${song.originalIndex})">+</button>`
+                        }
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        window.addSongToDB = function() {
+            const n = document.getElementById('db-song-name'), k = document.getElementById('db-song-key'), b = document.getElementById('db-song-bpm');
+            if(!n.value.trim()) return alert("Please enter a song title.");
+            database.push({ name: n.value.trim(), key: k.value.trim().toUpperCase(), bpm: b.value.trim() });
+            localStorage.setItem('sync-database', JSON.stringify(database));
+            n.value = ''; k.value = ''; b.value = ''; 
+            document.getElementById('db-search-bar').value = ''; 
+            renderDatabase();
+        };
+
+        window.deleteFromDB = function(originalIndex) {
+            if(confirm('Permanently delete this song from your master library?')) { 
+                database.splice(originalIndex, 1); 
+                localStorage.setItem('sync-database', JSON.stringify(database)); 
+                renderDatabase(document.getElementById('db-search-bar').value); 
+            }
+        };
+
+        window.pushToSetlist = function(dbIndex) {
+            const song = database[dbIndex];
+            setlist.push(song);
+            localStorage.setItem('sync-setlist', JSON.stringify(setlist));
+            renderDatabase(document.getElementById('db-search-bar').value); // Re-render to show checkmark
+        };
+
+        // SETLIST LOGIC (Current Sunday)
         window.renderSetlist = function(query = '') {
             const container = document.getElementById('setlist-container');
             container.innerHTML = '';
             
-            // Map the setlist to attach original index so deletion is always accurate even when filtered
             const mappedSetlist = setlist.map((song, index) => ({...song, originalIndex: index}));
-            
-            const filteredSetlist = mappedSetlist.filter(song => 
-                song.name.toLowerCase().includes(query.toLowerCase())
-            );
+            const filteredSetlist = mappedSetlist.filter(song => song.name.toLowerCase().includes(query.toLowerCase()));
 
-            if(filteredSetlist.length === 0) { 
-                container.innerHTML = '<div style="text-align:center; color:var(--text-sec); margin-top:20px; font-size: 15px;">No songs found.</div>'; 
-                return; 
-            }
+            if(filteredSetlist.length === 0) { container.innerHTML = '<div style="text-align:center; color:var(--text-sec); margin-top:20px; font-size: 15px;">Set list is empty. Add songs from your Library.</div>'; return; }
             
             filteredSetlist.forEach(song => {
                 const item = document.createElement('div');
@@ -418,39 +401,30 @@
                 item.innerHTML = `
                     <div class="song-info">
                         <div class="song-name">${song.name}</div>
-                        <div class="song-meta">
-                            <span>Key: ${song.key || '--'}</span>
-                            <span>BPM: ${song.bpm || '--'}</span>
-                        </div>
+                        <div class="song-meta"><span>Key: ${song.key || '--'}</span><span>BPM: ${song.bpm || '--'}</span></div>
                     </div>
-                    <button class="delete-btn" onclick="deleteSong(${song.originalIndex})">✕</button>
+                    <button class="icon-btn btn-remove" onclick="removeFromSetlist(${song.originalIndex})">✕</button>
                 `;
                 container.appendChild(item);
             });
         }
         
-        window.addSong = function() {
-            const n = document.getElementById('song-name'), k = document.getElementById('song-key'), b = document.getElementById('song-bpm');
-            if(!n.value.trim()) return alert("Please enter a song title.");
-            setlist.push({ name: n.value.trim(), key: k.value.trim().toUpperCase(), bpm: b.value.trim() });
-            localStorage.setItem('sync-setlist', JSON.stringify(setlist));
-            n.value = ''; k.value = ''; b.value = ''; 
-            document.getElementById('search-bar').value = ''; // Reset search on new entry
-            renderSetlist();
+        window.removeFromSetlist = function(originalIndex) {
+            setlist.splice(originalIndex, 1); 
+            localStorage.setItem('sync-setlist', JSON.stringify(setlist)); 
+            renderSetlist(document.getElementById('setlist-search-bar').value); 
         };
-        
-        window.deleteSong = function(originalIndex) {
-            if(confirm('Remove this song?')) { 
-                setlist.splice(originalIndex, 1); 
-                localStorage.setItem('sync-setlist', JSON.stringify(setlist)); 
-                // Re-render with current search query to keep user in flow
-                const currentQuery = document.getElementById('search-bar').value;
-                renderSetlist(currentQuery); 
+
+        window.clearSetlist = function() {
+            if(confirm('Clear all songs from the current Sunday set list? (They will remain in your master library).')) {
+                setlist = [];
+                localStorage.setItem('sync-setlist', JSON.stringify(setlist));
+                renderSetlist();
             }
         };
 
+        // Init
         renderTeam();
-        renderSetlist();
     </script>
 </body>
 </html>
