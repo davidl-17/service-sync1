@@ -6,6 +6,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ServiceSync">
+    
+    <!-- Theme colors to perfectly blend the iOS status bar and overscroll areas -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F0EFFF">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#130B2B">
+    
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/4B0082/FFFFFF?text=Sync">
     <title>Service Organizer</title>
     <style>
@@ -13,6 +18,7 @@
         :root {
             /* Light Mode Galaxy Colors */
             --bg-gradient: linear-gradient(135deg, #F0EFFF 0%, #E6F0FF 100%);
+            --overscroll-bg: #E6F0FF; /* Matches the bottom of the light gradient */
             --card-bg: rgba(255, 255, 255, 0.75);
             --text: #1a153a;
             --text-sec: #6b668c;
@@ -29,6 +35,7 @@
             :root {
                 /* Dark Mode Galaxy Colors */
                 --bg-gradient: linear-gradient(135deg, #130B2B 0%, #1A1543 50%, #0F1A2C 100%);
+                --overscroll-bg: #0F1A2C; /* Matches the bottom of the dark gradient */
                 --card-bg: rgba(30, 28, 55, 0.65);
                 --text: #ffffff;
                 --text-sec: #9ba1d2;
@@ -39,12 +46,21 @@
             }
         }
 
+        /* Set the absolute background to match the gradient so the white gap disappears */
+        html {
+            background-color: var(--overscroll-bg);
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
             background: var(--bg-gradient);
             background-attachment: fixed;
+            background-color: var(--overscroll-bg);
             color: var(--text);
             margin: 0;
+            /* Force the body to always cover the entire screen height */
+            min-height: 100vh;
+            box-sizing: border-box;
             padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom) 16px;
             -webkit-font-smoothing: antialiased;
         }
@@ -134,7 +150,7 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6);
             border: 3px solid rgba(255,255,255,0.25); box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-            touch-action: none; /* Crucial for iOS touch dragging */
+            touch-action: none; 
             transition: transform 0.1s;
         }
         .marker-name { font-size: 13px; font-weight: 700; line-height: 1.1; }
@@ -210,7 +226,6 @@
             'White': '#a1a1aa', 'Red': '#ff453a', 'Yellow': '#d4b000' 
         };
 
-        // Default horizontal layout percentages for markers if none are saved yet
         const defaultPositions = { 1: {x: 15, y: 45}, 2: {x: 35, y: 45}, 3: {x: 55, y: 45}, 4: {x: 75, y: 45} };
 
         let setlist = JSON.parse(localStorage.getItem('sync-setlist')) || [];
@@ -250,7 +265,6 @@
                             </select>
                         </div>
                     </div>
-                    <!-- Simplified placeholder per request -->
                     <input type="text" class="ios-input notes-input" placeholder="Notes" value="${savedNotes}" oninput="localStorage.setItem('sync-iem${iem}-notes', this.value)">
                 `;
                 container.appendChild(row);
@@ -277,7 +291,6 @@
                 if(singer !== 'Unassigned') {
                     hasMarkers = true;
                     
-                    // Fetch saved XY percentages or fallback to the horizontal default
                     const posX = localStorage.getItem(`sync-iem${iem}-x`) || defaultPositions[iem].x;
                     const posY = localStorage.getItem(`sync-iem${iem}-y`) || defaultPositions[iem].y;
 
@@ -297,7 +310,7 @@
             emptyMsg.style.display = hasMarkers ? 'none' : 'block';
         }
 
-        /* --- Drag and Drop Touch Logic for iOS --- */
+        /* --- Drag and Drop Logic --- */
         const stageBox = document.getElementById('stage-box');
         let activeDrag = null;
         let startX, startY, initLeft, initTop;
@@ -315,7 +328,7 @@
             
             activeDrag.style.transform = 'scale(1.15)';
             activeDrag.style.zIndex = 100;
-            e.preventDefault(); // Prevents screen scrolling while holding marker
+            e.preventDefault(); 
         }, { passive: false });
 
         stageBox.addEventListener('touchmove', (e) => {
@@ -329,7 +342,6 @@
             let newLeft = initLeft + dx;
             let newTop = initTop + dy;
             
-            // Constrain marker inside the stage box
             const maxW = stageBox.clientWidth - activeDrag.offsetWidth;
             const maxH = stageBox.clientHeight - activeDrag.offsetHeight;
             
@@ -346,7 +358,6 @@
             activeDrag.style.transform = 'scale(1)';
             activeDrag.style.zIndex = 1;
             
-            // Convert exact pixels back to percentages to save. This ensures if phone rotates, they stay relative.
             const percX = (activeDrag.offsetLeft / stageBox.clientWidth) * 100;
             const percY = (activeDrag.offsetTop / stageBox.clientHeight) * 100;
             
@@ -367,7 +378,6 @@
             }
         };
 
-        // Setlist Functions
         function renderSetlist() {
             const container = document.getElementById('setlist-container');
             container.innerHTML = '';
